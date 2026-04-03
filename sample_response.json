@@ -1,0 +1,22 @@
+[
+  {
+    "Best Sector": "Energy",
+    "Ticker": "IUES",
+    "Reason": "Energy leads S&P 500 sectors YTD 2026 with +26.47% through early March and +155-160% cumulative returns recently, driven by oil prices and subsectors like chemicals/oil services outperforming amid geopolitical tensions. [web:17][web:18][web:113]"
+  },
+
+  
+  {
+    "Best Sector": "Energy",
+    "Ticker": "IUES",
+    "Reason": "...",
+    "YTD Return": "+26.47%",
+    "1 Month Return": "+1.00%",
+    "Market Cap Weight": "3.5%",
+    "TER": "0.15%",
+    "Top Holdings": ["ExxonMobil (XOM)", "Chevron (CVX)"],
+    "Risk Level": "High (volatility from oil prices)",
+    "Outlook": "Positive short-term on supply constraints [web:26]",
+    "Alternative": "Utilities (IUUS) for defence (+10%)"
+  }
+]

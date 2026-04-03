@@ -13,8 +13,6 @@ us_sector_etfs = {
     "Utilities": "IUUS",
     "Mining (Copper)": "MINE",
     "Mining (Metals Producers)": "PICK",
-    
-    # Additional sub-sectors and themes (UK-listed iShares)
     "Oil & Gas": "IUGO",  # Oil & Gas Exploration/Production
     "Semiconductors": "SMDG",  # iShares MSCI Global Semiconductors
     "Aerospace & Defense": "ITAD",  # iShares Aerospace & Defense

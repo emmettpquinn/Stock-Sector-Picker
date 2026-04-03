@@ -3,7 +3,7 @@ name = "stock-sector-picker"
 version = "0.1.0"
 description = ""
 authors = [
-    {name = "Emmet Quinn",email = "emmet@example.com"}
+    {name = "Emmett Quinn",email = "emmett@example.com"}
 ]
 requires-python = "^3.11"
 dependencies = [
