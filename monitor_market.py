@@ -2,11 +2,13 @@ import json
 import time
 from datetime import datetime, timezone
 
+from trading_212_api import Trading212API
 from vv_signals import VectorVestSignalMonitor
 
 
 def monitor_market(investor, poll_seconds=900, max_cycles=None):
     signal_monitor = VectorVestSignalMonitor()
+    trading_api = None
     cycle = 0
 
     while True:
@@ -23,9 +25,14 @@ def monitor_market(investor, poll_seconds=900, max_cycles=None):
             }
 
             if should_trigger:
-                signal_monitor.save_statuses(current_statuses)
                 pick = investor.get_best_sector()
                 signal_snapshot["sector_pick"] = pick
+                if trading_api is None:
+                    trading_api = Trading212API()
+                signal_snapshot["trade_execution"] = trading_api.rebalance_to_ticker(
+                    pick["ticker"]
+                )
+                signal_monitor.save_statuses(current_statuses)
             else:
                 signal_snapshot["message"] = "No signal change detected. Skipping sector search."
 
