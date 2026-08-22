@@ -1,7 +1,6 @@
 {
-  "current_sector": "Financials",
-  "current_ticker": "IUFS",
-  "holds_position": true,
-  "position_quantity": 29,
-  "available_capital": 6.56
+  "current_sector": null,
+  "current_ticker": null,
+  "holds_position": false,
+  "position_quantity": 0
 }
