@@ -1,0 +1,35 @@
+stages:
+  - run
+
+run_bot:
+  stage: run
+  image: python:3.11-slim
+  resource_group: sector-picker-bot
+  rules:
+    # Fires from the GitLab pipeline schedule (see setup notes below).
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    # Also allow a manual "Run pipeline" from the UI for testing.
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+  cache:
+    key:
+      files:
+        - poetry.lock
+    paths:
+      - .venv/
+  before_script:
+    - pip install --no-cache-dir poetry
+    - poetry config virtualenvs.in-project true
+    - poetry install --no-root
+  script:
+    - poetry run python main.py
+    - |
+      if [ -n "$(git status --porcelain trading_state.json vv_signal_state.json)" ]; then
+        git config user.email "sector-picker-bot@ci.local"
+        git config user.name "Sector Picker Bot"
+        git add trading_state.json vv_signal_state.json
+        git commit -m "chore: update bot state [skip ci]"
+        git remote set-url origin "https://oauth2:${GIT_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+        git push origin "HEAD:${CI_COMMIT_REF_NAME}"
+      else
+        echo "No state changes to commit."
+      fi
