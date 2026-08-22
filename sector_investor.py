@@ -10,13 +10,22 @@ class SectorInvestor:
     def __init__(self):
         self.api_key = os.getenv("PERPLEXITY_API_KEY")
 
-    def _build_prompt(self):
+    def _build_prompt(self, excluded_tickers=None):
         sector_map = json.dumps(us_sector_etfs, indent=2)
+        excluded_tickers = excluded_tickers or []
+        excluded_note = ""
+        if excluded_tickers:
+            excluded_note = (
+                " Do not use any of these tickers because they are not tradable right now: "
+                + ", ".join(sorted(set(excluded_tickers)))
+                + "."
+            )
+
         return (
             "You are selecting exactly one sector ETF that is best positioned right now based on current market conditions. "
             "Return JSON only with keys: sector, ticker, confidence, rationale. "
             "Rules: sector must be an exact key from the dictionary; ticker must match that key; confidence must be 0-100 integer; "
-            "rationale must be under 40 words.\n\n"
+            f"rationale must be under 40 words.{excluded_note}\n\n"
             "Sector dictionary:\n"
             f"{sector_map}"
         )
@@ -64,7 +73,7 @@ class SectorInvestor:
             "rationale": str(rationale).strip(),
         }
 
-    def get_best_sector(self):
+    def get_best_sector(self, excluded_tickers=None):
         if not self.api_key:
             raise RuntimeError("PERPLEXITY_API_KEY is missing")
 
@@ -74,7 +83,7 @@ class SectorInvestor:
             "Content-Type": "application/json"
         }
 
-        prompt = self._build_prompt()
+        prompt = self._build_prompt(excluded_tickers=excluded_tickers)
 
         # Perplexity uses chat-completions payload format.
         data = {
@@ -100,4 +109,6 @@ class SectorInvestor:
         result = response.json()
         raw_content = result.get("choices", [{}])[0].get("message", {}).get("content", "")
         parsed_payload = self._extract_json(raw_content)
-        return self._validate_pick(parsed_payload)
+        validated_pick = self._validate_pick(parsed_payload)
+        validated_pick["perplexity_raw_response"] = raw_content
+        return validated_pick

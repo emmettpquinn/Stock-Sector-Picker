@@ -1,6 +1,7 @@
 {
   "timestamp_utc": "2026-04-03T10:57:37.102626+00:00",
-  "current_sector": "Financials",
+  "current_sector": "Energy",
+  "holds_position": true,
   "vectorvest_statuses": [
     "DOWN",
     "DOWN",

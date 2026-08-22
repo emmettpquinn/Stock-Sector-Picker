@@ -16,7 +16,7 @@ us_sector_etfs = {
     "Oil & Gas": "IUGO",  # Oil & Gas Exploration/Production
     "Semiconductors": "SMDG",  # iShares MSCI Global Semiconductors
     "Aerospace & Defense": "ITAD",  # iShares Aerospace & Defense
-    "Banks": "SUBK",  # iShares S&P 500 Banks
+    "Banks": "BNKS",  # iShares S&P 500 Banks
     "Biotechnology": "IBIO",  # iShares Nasdaq Biotechnology
     "Cybersecurity": "IICY",  # iShares Digital Security
     "Clean Energy": "INRG",  # iShares Global Clean Energy
