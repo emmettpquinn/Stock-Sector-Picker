@@ -17,13 +17,16 @@ run_bot:
     paths:
       - .venv/
   before_script:
+    - apt-get update && apt-get install -y --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/*
     - pip install --no-cache-dir poetry
     - poetry config virtualenvs.in-project true
     - poetry install --no-root
   script:
     - poetry run python main.py
     - |
-      if [ -n "$(git status --porcelain trading_state.json vv_signal_state.json)" ]; then
+      set -e
+      git status --porcelain trading_state.json vv_signal_state.json > /tmp/state_diff.txt
+      if [ -s /tmp/state_diff.txt ]; then
         git config user.email "sector-picker-bot@ci.local"
         git config user.name "Sector Picker Bot"
         git add trading_state.json vv_signal_state.json
