@@ -95,7 +95,13 @@ def monitor_market(investor, poll_seconds=900, max_cycles=None):
                 last_pick_error = None
 
                 for _ in range(3):
-                    pick = investor.get_best_sector(excluded_tickers=excluded_tickers)
+                    try:
+                        pick = investor.get_best_sector(excluded_tickers=excluded_tickers)
+                    except ValueError as exc:
+                        last_pick_error = str(exc)
+                        pick = None
+                        continue
+
                     try:
                         resolved_symbol, resolved_price = trading_api.resolve_trade_target(
                             pick["ticker"]

@@ -24,6 +24,12 @@ FALLBACK_MARKET_TICKERS = [
     "EQQQ",
 ]
 
+# Trading 212's public API has no live quote endpoint, so reference prices for
+# sizing/validation come from Yahoo Finance instead. Try the bare ticker first
+# (US-listed), then common European exchange suffixes for the LSE/Xetra-listed
+# iShares ETFs used elsewhere in this project.
+YFINANCE_SUFFIXES = ["", ".L", ".DE", ".AS", ".PA", ".MI"]
+
 
 class Trading212API:
     def __init__(self, timeout=15, state_file="trading_state.json", order_quantity=1):
@@ -52,7 +58,6 @@ class Trading212API:
         self.timeout = timeout
         self.state_file = Path(__file__).resolve().parent / state_file
         self._instrument_tickers = None
-        self.market_data_base_url = self.base_url.replace("/api/v0/equity", "")
 
         env_quantity = os.getenv("TRADING212_ORDER_QUANTITY")
         raw_quantity = int(env_quantity) if env_quantity else order_quantity
@@ -119,66 +124,64 @@ class Trading212API:
     def _metadata_url(self, page=0, limit=500):
         return f"{self.base_url}/metadata/instruments?limit={limit}&page={page}"
 
-    def _market_data_urls(self, symbol):
-        return [
-            f"{self.market_data_base_url}/api/v0/market-data?tickers={symbol}",
-            f"{self.market_data_base_url}/api/v0/market-data/{symbol}",
-        ]
-
     @staticmethod
-    def _extract_price(data):
-        if isinstance(data, list):
-            if not data:
-                return None
-            return Trading212API._extract_price(data[0])
+    def _reference_price(ticker):
+        """Look up a reference price from Yahoo Finance.
 
-        if isinstance(data, dict):
-            for key in ("lastPrice", "price", "bid", "ask"):
-                value = data.get(key)
-                if value is not None:
-                    try:
-                        parsed = float(value)
-                    except (TypeError, ValueError):
-                        continue
-                    if parsed > 0:
-                        return parsed
+        Trading 212's public API has no live quote endpoint, so this is used
+        purely for capital-based order sizing, not for order execution.
+        """
+        try:
+            import yfinance as yf
+        except ImportError as exc:
+            raise RuntimeError(
+                "yfinance is required for price lookups; install it with 'poetry add yfinance'"
+            ) from exc
 
-            for key in ("items", "results", "data"):
-                nested = data.get(key)
-                if nested is not None:
-                    nested_price = Trading212API._extract_price(nested)
-                    if nested_price:
-                        return nested_price
-
-        return None
-
-    def _price_for_symbol(self, symbol):
-        for url in self._market_data_urls(symbol):
+        base = str(ticker).strip().upper()
+        for suffix in YFINANCE_SUFFIXES:
+            symbol = f"{base}{suffix}"
             try:
-                response = requests.get(url, headers=self._headers(), timeout=self.timeout)
-            except requests.RequestException:
+                fast_info = yf.Ticker(symbol).fast_info
+                price = fast_info.get("last_price") or fast_info.get("lastPrice")
+            except Exception:
                 continue
 
-            if response.status_code != 200:
-                continue
-
-            try:
-                data = response.json()
-            except ValueError:
-                continue
-
-            price = self._extract_price(data)
             if price and price > 0:
-                return price
+                return float(price)
 
         return None
+
+    def _match_known_instrument(self, ticker):
+        """Return the Trading 212 symbol for `ticker` if it's a known tradable instrument."""
+        candidates = self._ticker_candidates(ticker)
+        available = self._load_instrument_tickers()
+        if not available:
+            return candidates[0]
+
+        available_by_upper = {sym.upper(): sym for sym in available}
+        for candidate in candidates:
+            resolved = available_by_upper.get(candidate.upper())
+            if resolved:
+                return resolved
+
+        base = str(ticker).strip().upper().replace("_US_EQ", "").replace("_EQ", "")
+        fuzzy = [
+            sym for sym in available
+            if sym.upper().startswith(base) and sym.upper().endswith("_EQ")
+        ]
+        return fuzzy[0] if fuzzy else None
 
     def _resolve_ticker_and_price(self, ticker):
-        for symbol in self._resolve_ticker_candidates(ticker):
-            price = self._price_for_symbol(symbol)
-            if price:
-                return symbol, price
-        raise RuntimeError(f"Unable to resolve a tradable priced symbol for '{ticker}'")
+        symbol = self._match_known_instrument(ticker)
+        if symbol is None:
+            raise RuntimeError(f"'{ticker}' is not a tradable Trading212 instrument")
+
+        price = self._reference_price(ticker)
+        if price is None:
+            raise RuntimeError(f"Unable to resolve a reference price for '{ticker}'")
+
+        return symbol, price
 
     def resolve_trade_target(self, ticker):
         """Resolve ticker to a tradable Trading212 symbol and current price."""
