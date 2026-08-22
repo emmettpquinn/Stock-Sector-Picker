@@ -1,10 +1,10 @@
 {
-  "updated_at_utc": "2026-04-03T10:57:37.102661+00:00",
+  "updated_at_utc": "2026-08-22T00:47:07.330291+00:00",
   "statuses": [
-    "DOWN",
-    "DOWN",
-    "Neutral",
     "UP",
+    "UP",
+    "Neutral",
+    "DOWN",
     "Neutral"
   ]
 }
