@@ -1,7 +1,7 @@
 {
-  "current_sector": "Energy",
-  "current_ticker": "IUES",
+  "current_sector": "Financials",
+  "current_ticker": "IUFS",
   "holds_position": true,
-  "position_quantity": 149,
-  "available_capital": 9.62
+  "position_quantity": 113,
+  "available_capital": 13.94
 }
