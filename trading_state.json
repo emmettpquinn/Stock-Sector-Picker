@@ -1,7 +1,7 @@
 {
-  "current_sector": "Information Technology",
-  "current_ticker": "IUIT",
+  "current_sector": "Energy",
+  "current_ticker": "IUES",
   "holds_position": true,
-  "position_quantity": 34,
-  "available_capital": 29.0
+  "position_quantity": 124,
+  "available_capital": 6.8
 }
